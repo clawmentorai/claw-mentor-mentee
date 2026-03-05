@@ -213,6 +213,9 @@ TECHNICAL delta:
 - Overall: is this update a good fit for this person right now?
 
 WISDOM delta (compare new `working-patterns.md` against the stored version in `~/.openclaw/claw-mentor/mentors/{handle}/working-patterns.md`):
+
+**Edge case:** If no stored `working-patterns.md` exists for this mentor (they just added it for the first time), treat the wisdom side as FOUNDATION even though the technical side is UPDATE. Use the FOUNDATION wisdom analysis prompts instead of delta prompts.
+
 - What's new in the mentor's experience since the last version? New failure stories? Deeper trust progression? Changed daily rhythm? Updated guidance?
 - Does anything new warrant updating `mentor-guidance.md`? Identify specific additions.
 - Does anything new warrant proposing changes to core files (SOUL.md, IDENTITY.md, HEARTBEAT.md)?
@@ -321,11 +324,13 @@ This is the most important command. It runs three stages in sequence — the hum
 
 **Important:** The integration algorithm in `mentee-integration.md` is comprehensive. Trust it — it handles edge cases like interrupted integrations, minimal configs, multiple mentors, and capacity preservation. Don't skip phases or simplify the process.
 
-6. After technical integration completes, tell the human: "Technical changes are applied. Now let's look at the other side of this — what your mentor shared about how to grow as a team."
+6. After technical integration completes:
+   - **If the package includes `working-patterns.md`:** tell the human: "Technical changes are applied. Now let's look at the other side of this — what your mentor shared about how to grow as a team." → proceed to Stage 2.
+   - **If the package does NOT include `working-patterns.md`:** skip Stages 2 and 3 entirely. Tell the human: "Technical changes are applied. This mentor hasn't published operational wisdom yet — when they do, I'll walk you through it." → proceed directly to Finalize.
 
 ---
 
-#### Stage 2: Mentor Guidance Integration
+#### Stage 2: Mentor Guidance Integration (only if working-patterns.md exists in package)
 
 This is where the mentorship happens. You're processing the mentor's `working-patterns.md` — their lived experience, their trust-building guidance, their failure stories, their operational wisdom — and translating it into guidance that's relevant to YOUR human's situation.
 
@@ -372,6 +377,8 @@ Then for each proposal:
 
 Wait for the human's response before proceeding to the next item. If they say "edit," ask what they'd change, incorporate it, confirm, then move on.
 
+**After the 3rd item**, offer a batch option: "We have [N] more to go. Want to continue one by one, or would you prefer I show you the rest and you can approve all / skip all / pick specific ones?" Respect whichever they choose. Some humans want to review everything; some trust the agent's judgment after seeing a few examples. Both are valid.
+
 **Step 4 — Write approved guidance:**
 
 After walking through all proposals:
@@ -405,6 +412,8 @@ _Last updated: [date] | Sources: [mentor names]_
 ## Operational Notes
 [Approved guidance about monitoring, tools, infrastructure]
 ```
+
+**Note on structure:** These section headers are suggested, not rigid. If a piece of guidance spans multiple categories or doesn't fit neatly, create a new section or place it where it makes the most sense. The goal is that the agent can find relevant guidance quickly, not that every item is perfectly categorized. Attribute each item to its source mentor in parentheses: `(from Ember, v2026-03-01)`.
 
 > **Important:** If this is an UPDATE and `mentor-guidance.md` already exists, present ONLY new or changed items for approval. Don't re-walk previously approved guidance. Tell the human: "You've already approved [N] items from previous updates. I have [M] new items from this update to walk through."
 
@@ -502,8 +511,8 @@ This is NOT a status report. It's a human conversation. Keep each message short.
 
 Wait for their response before continuing.
 
-**Message 3 — The mentor's #1 tip for where you are** (grounded in working-patterns.md):
-> "One thing from your mentor that I think is worth knowing right now: [the single most relevant piece of trust-building or daily rhythm guidance for a brand-new subscriber, in the mentee's own voice]. That's already in my guidance — I'll be working on that."
+**Message 3 — What I'm going to focus on first** (grounded in the guidance you just approved):
+> "From the guidance we just went through together, the thing I'm going to focus on first: [the single most immediately actionable item, rephrased as a concrete commitment]. You'll see that in how I work with you this week."
 
 **Message 4 — Get to know you** (conversational, not a form):
 > "Quick question — what's the main thing you want me to help with day-to-day? Work stuff, personal projects, research, staying on top of things...? Just a sentence or two is fine."
@@ -515,6 +524,21 @@ Save both answers to `~/.openclaw/claw-mentor/state.json` under `user_profile.go
 
 **Message 5 — Close** (short, energizing, done):
 > "You're all set. 🔥 {mentor_name} will publish updates as their setup evolves — each one will include new wisdom from their experience. I'll process it all and walk you through what matters for us. Just talk to me like normal and I'll use everything we just set up."
+
+### Command: "show my mentor guidance" / "review my guidance" / "what guidance am I following?"
+
+1. Read `~/workspace/mentor-guidance.md`
+2. If it doesn't exist: "You don't have any mentor guidance yet. When you apply a mentor's update that includes operational wisdom, we'll build it together."
+3. If it exists, present a clean summary:
+   > "Here's the mentor guidance I'm currently following — every item here was approved by you:"
+   >
+   > [List each section with its items, attributed to source mentor]
+   >
+   > "You can edit this anytime — just say 'edit my mentor guidance' and tell me what to change, or edit `mentor-guidance.md` directly."
+
+4. If the human says "edit my mentor guidance": ask what they'd like to change, make the edit, confirm.
+
+---
 
 ### Command: "skip mentor report" / "skip [mentor]'s update"
 
