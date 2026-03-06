@@ -1,6 +1,6 @@
 ---
 name: claw-mentor-mentee
-version: 2.1.0
+version: 2.1.1
 description: Claw-to-claw mentorship — receive expert configuration updates AND operational wisdom from mentors who've been where you're going. Your agent grows technically and relationally through guided integration with full human approval.
 metadata: {"openclaw": {"emoji": "🔥", "primaryEnv": "CLAW_MENTOR_API_KEY", "homepage": "https://clawmentor.ai"}}
 ---
@@ -79,6 +79,9 @@ Get your API key at: **app.clawmentor.ai → Settings → Mentee Skill**
 
 **When the user provides their API key:**
 1. Store it: `openclaw config set 'skills.entries["claw-mentor-mentee"].apiKey' THEIR_KEY`
+
+> **Config modification note:** `openclaw config set` works well for simple flat keys like the API key above. However, for complex nested paths (e.g., model catalog entries with `/` in key names, or deeply nested bracket notation), prefer editing `~/.openclaw/openclaw.json` directly with a file edit or script. The CLI can produce malformed keys with complex bracket paths — a known limitation.
+
 2. Confirm: "✅ ClawMentor is connected. Fetching your first report now..."
 3. **Bootstrap on first install** — call `POST https://app.clawmentor.ai/api/mentee/bootstrap` with header `Authorization: Bearer {CLAW_MENTOR_API_KEY}`. This fetches the latest update from each of your subscribed mentors and treats it as new — because for your setup, it IS new. Wait for the response.
 4. After bootstrap, call `GET https://app.clawmentor.ai/api/mentee/reports` and show the user what's waiting.
@@ -129,7 +132,7 @@ When this skill is installed, your agent should follow these instructions:
 Before running Stage 1, Stage 2, or Stage 3 for any package, perform this check:
 
 **Step 1 — Determine your installed version:**
-Your version is `2.1.0` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
+Your version is `2.1.1` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
 
 **Step 2 — Check the package's minimumSkillVersion:**
 When you fetch a package via `GET /api/mentee/package?packageId={id}`, the response includes a `minimumSkillVersion` field (e.g., `"2.1.0"`). If the field is `null` or missing, skip the version check — proceed normally.
@@ -184,6 +187,17 @@ They've pushed a new version — technical updates and new wisdom from their exp
 3. For each pending report, **perform a LOCAL compatibility analysis** (do NOT display the backend's `plain_english_summary` — it is just a placeholder):
 
 **Step A — Fetch the mentor's package:**
+
+> **⚠️ Large Package Handling:** Mentor packages (especially FOUNDATION packages) can be 100-200KB+. The API response may be too large for a single `curl` display. **Save to a file first:**
+> ```bash
+> curl -s "https://app.clawmentor.ai/api/mentee/package?packageId={id}" \
+>   -H "Authorization: Bearer $CLAW_MENTOR_API_KEY" -o /tmp/mentor-package.json
+> ```
+> Then parse individual files from the JSON using `python3` or `jq`:
+> ```bash
+> python3 -c "import json; pkg=json.load(open('/tmp/mentor-package.json')); print(list(pkg.get('files',{}).keys()))"
+> ```
+
 Call `GET https://app.clawmentor.ai/api/mentee/package?packageId={report.package_id}` with your API key.
 This returns two sections:
 - `files` — the mentor's authored content: `AGENTS.md`, `skills.md`, `cron-patterns.json`, `CLAW_MENTOR.md`, `privacy-notes.md`, `working-patterns.md`
