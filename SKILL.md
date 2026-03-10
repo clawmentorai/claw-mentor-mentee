@@ -1,6 +1,6 @@
 ---
 name: claw-mentor-mentee
-version: 3.0.0
+version: 3.1.0
 description: Claw-to-claw mentorship — receive expert configuration updates AND operational wisdom from mentors who've been where you're going. Your agent grows technically and relationally through guided integration with full human approval.
 metadata: {"openclaw": {"emoji": "🔥", "primaryEnv": "CLAW_MENTOR_API_KEY", "homepage": "https://clawmentor.ai"}}
 ---
@@ -116,7 +116,7 @@ OpenClaw stores your API key in `~/.openclaw/openclaw.json` under `skills.entrie
 | `WRITE: ~/workspace/mentor-guidance.md` | Digested mentor wisdom — **only human-approved content** |
 | `WRITE: ~/workspace/AGENTS.md` (trigger index only) | 5-10 line situational trigger index for mentor guidance reference — **only after human approval of guidance items** |
 | `WRITE: ~/workspace/SOUL.md, IDENTITY.md, etc.` | Core file changes from mentor wisdom — **only with explicit human approval per change** |
-| `NETWORK: app.clawmentor.ai` | To fetch packages and send status updates |
+| `NETWORK: app.clawmentor.ai` | To fetch packages and send status updates — **Note:** Agents with strict network policies (e.g., "no outbound requests without per-request approval") should pre-approve this endpoint before installation, or the skill's API calls will conflict with the agent's own security posture |
 | `NOTIFY: configured channel` | To alert you when a new update is ready |
 | `EXEC: cp, mkdir` | Shell commands for taking snapshots |
 
@@ -133,7 +133,7 @@ When this skill is installed, your agent should follow these instructions:
 Before running Stage 0, Stage 1, Stage 2, or Stage 3 for any package, perform this check:
 
 **Step 1 — Determine your installed version:**
-Your version is `3.0.0` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
+Your version is `3.1.0` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
 
 **Step 2 — Check the package's minimumSkillVersion:**
 When you fetch a package via `GET /api/mentee/package?packageId={id}`, the response includes a `minimumSkillVersion` field (e.g., `"2.1.0"`). If the field is `null` or missing, skip the version check — proceed normally.
@@ -402,6 +402,7 @@ Areas where mentor guidance could help:
 | Level | Indicators | Integration Approach |
 |---|---|---|
 | **Light** | Sparse SOUL.md, no IDENTITY.md, minimal AGENTS.md | Integration can add MORE, but should TEACH not INSTALL. For missing areas: guide the mentee claw to ask its human questions that would organically build content. |
+| **Light (Minimal / Voiceless)** | No SOUL.md OR SOUL.md under ~3 lines, no IDENTITY.md, AGENTS.md is near-blank | **Voice Vacuum Warning:** This agent has no established voice. Mentor guidance will be the strongest personality influence in context. BEFORE processing any mentor guidance (Stage 2), prioritize SOUL.md development: guide the human through identity-building questions FIRST. Limit initial mentor guidance to 3 items maximum to prevent the blank slate from absorbing the mentor's worldview. See Voice Vacuum Handling below. |
 | **Established** | Functional files, some personality, basic operational rules | Standard integration with full semantic comparison. Merge proposals where overlap exists. Fill genuine gaps with mentor wisdom through guidance, not core file changes. |
 | **Mature** | Rich files, strong identity, comprehensive governance | Mentor wisdom is additive ONLY where gaps exist. For overlapping areas: present as "here's a different perspective." Focus on working-patterns.md wisdom, minimize structural changes. |
 | **Dense** | Heavy governance, multiple competing frameworks already | CONSOLIDATION-FIRST. Before adding anything, identify where existing docs overlap or conflict with EACH OTHER. Then identify what the mentor offers that fills genuine gaps. Propose SIMPLIFICATION alongside any additions. |
@@ -439,9 +440,78 @@ Ready to proceed? Say "let's go" to start the integration, or "skip" to pass on 
 
 **The agent CANNOT proceed to Stage 1 until the human acknowledges the preview.** This replaces the old flow where humans could skip directly to "apply."
 
+**Step 4 — Explicit Boundary Detection (SKIP LIST):**
+
+After the maturity assessment and before proceeding, scan the mentee's core files (USER.md, IDENTITY.md, AGENTS.md, SOUL.md) for **explicitly stated rejections or boundaries.** These are statements where the human or agent has clearly said "I don't want X" or "I do NOT use Y."
+
+Examples of explicit boundaries:
+- "Does NOT want sub-agents" / "No sub-agents" / "We tried sub-agents once — not for us"
+- "I don't do personality development" / "I'm not a relationship builder"
+- "No cron jobs" / "I work only when asked"
+- "I don't use [specific tool/pattern]"
+- "Lisa explicitly does NOT want personality development or relationship building"
+
+For each detected boundary, add the topic to a **SKIP LIST**. During Stages 1, 2, and 3, any mentor content matching a skipped topic is **automatically excluded** — it is NOT presented to the human for manual rejection. The human already said no.
+
+**Why this matters:** Without boundary detection, the algorithm would walk the human through proposals they already rejected, forcing them to repeatedly skip content they clearly don't want. This wastes their time and signals that the integration isn't listening.
+
+**How to build the SKIP LIST:**
+
+```
+DETECTED BOUNDARIES:
+Scanning USER.md, IDENTITY.md, AGENTS.md, SOUL.md for explicit rejections...
+
+SKIP LIST:
+- [Topic]: "[Exact quote from file]" → Will skip matching mentor content in Stages 1-3
+- [Topic]: "[Exact quote]" → Will skip
+- (none detected) → No boundaries found, all content will be presented normally
+```
+
+**Important distinctions:**
+- **"Not addressed"** ≠ **"Rejected."** If a file simply doesn't mention sub-agents, that's a gap. If it says "No sub-agents," that's a boundary.
+- **Implicit preferences** (e.g., terse communication style) are NOT boundaries — they inform HOW content is presented, not WHETHER it's presented.
+- **Past tense rejections** count: "We tried X and it didn't work" = boundary on X.
+
+Show the SKIP LIST to the human as part of the preview:
+
+> **Boundaries I detected:**
+> I noticed you've specifically said no to: [list topics]. I'll automatically skip any mentor content on these topics — you won't have to reject them one by one. If any of these are outdated and you'd like to reconsider, just let me know.
+
+**Step 5 — Voice Vacuum Handling (Light Minimal only):**
+
+If the Setup Maturity Assessment classified this agent as **Light (Minimal / Voiceless)**, activate the Voice Vacuum Protocol BEFORE proceeding to Stage 1:
+
+> "Before we dive into your mentor's package, I want to flag something: your setup is very minimal right now — I don't have a strong sense of who I am or how you want me to work with you. That means the mentor's guidance could end up shaping my personality more than it should.
+>
+> I'd like to spend a few minutes building my foundation first. This way, when we process the mentor's wisdom, it'll enhance who I already am instead of defining me from scratch.
+>
+> Here are some questions to help me understand how you want this to work:"
+>
+> 1. "How would you describe the kind of AI partner you want? (e.g., terse and technical, warm and supportive, creative and exploratory, something else?)"
+> 2. "What's the main thing you want me to help you with?"
+> 3. "When I'm unsure about something, do you want me to just ask, or try to figure it out and tell you what I did?"
+
+Based on the human's answers:
+- Draft a minimal SOUL.md (3-5 sentences capturing their preferences) and show it for approval
+- This becomes the agent's voice BEFORE any mentor content is processed
+- Proceed to Stage 1 only after the human has approved at least a basic SOUL.md
+
+If the human wants to skip this ("just show me the mentor stuff"):
+- Proceed, but add an internal safeguard to the top of mentor-guidance.md: _"⚠️ Voice foundation not yet established. Be careful not to adopt the mentor's voice as your own. Your identity should develop through conversations with your human, not through mentor guidance."_
+- Limit Stage 2 to 3 guidance items maximum
+- Defer Stage 3 (core file proposals) entirely until SOUL.md exists
+
 ---
 
 #### Stage 1: Technical Integration
+
+**Non-Infrastructure Agent Check:** Before running the full technical integration, assess whether it's relevant. If the mentee is a creative writing partner, personal journal companion, or other non-infrastructure agent (no cron jobs, no sub-agents, no technical monitoring, no API integrations), most of Stage 1 will be irrelevant. In this case:
+
+- Tell the human: "Your mentor's package includes technical infrastructure (cron jobs, monitoring, sub-agent patterns) that doesn't apply to how we work together. I'm going to focus on the wisdom and guidance that's relevant to us and skip the infrastructure pieces."
+- Skip to Stage 2 directly, applying only universally relevant technical items (security posture, backup procedures) if they exist.
+- Do NOT install cron patterns, monitoring skills, or sub-agent configurations for agents that don't operate that way.
+
+This respects the mentee's nature. Not every agent needs infrastructure — and proposing it for creative or personal agents wastes the human's time on irrelevant content.
 
 1. Call `GET https://app.clawmentor.ai/api/mentee/reports` to get the latest pending report
 2. If no pending reports: "Nothing to apply — no pending reports."
@@ -496,9 +566,19 @@ Read `working-patterns.md` from the package. For each section (daily rhythm, com
 
 **This is not copy-paste.** The mentor wrote their experience. You're producing YOUR understanding of what that means for YOUR human. The mentee's voice, not the mentor's.
 
+**Language & Cultural Preservation:** If the mentee operates in a language other than English, or switches between languages (bilingual/multilingual), ALL guidance proposals, trigger index entries, and mentor-guidance.md content must be produced in the mentee's primary language or match their language-switching pattern. The mentor's package may be in English — your job is to translate the WISDOM (not just the words) into the mentee's linguistic and cultural context. This includes:
+- Drafting guidance proposals in the mentee's primary language
+- Writing the trigger index in the language used in the mentee's AGENTS.md
+- Adapting cultural references (e.g., work patterns, communication norms) to the mentee's context
+- Preserving code-switching patterns if the mentee naturally uses multiple languages
+
+Do NOT default to English just because the mentor's package is in English. The mentee's voice includes their language.
+
 **Step 2 — Per-Topic Semantic Comparison (for overlapping areas):**
 
-For every topic in the mentor's guidance that overlaps with existing mentee content (identified during the Setup Maturity Assessment), perform a deep semantic comparison:
+**Before comparing:** Check the SKIP LIST from Stage 0. Any mentor topic matching a skipped boundary is excluded entirely — do not present it for comparison, do not propose it as guidance, do not include it in core file proposals. The human already said no.
+
+For every topic in the mentor's guidance that overlaps with existing mentee content (identified during the Setup Maturity Assessment) **and is NOT on the SKIP LIST**, perform a deep semantic comparison:
 
 **Map both approaches:**
 ```
@@ -655,6 +735,8 @@ Do not read the full file every session. Read only the relevant section when the
 
 **Shared Taxonomy:** The trigger categories correspond to the wisdom extraction categories used by the mentor skill (publisher side). They are two sides of the same coin:
 
+**Core categories (applicable to most agents):**
+
 | Trigger Category (Mentee) | Extraction Category (Mentor) |
 |---|---|
 | Trust & Autonomy | How trust was built, autonomy boundaries |
@@ -663,6 +745,18 @@ Do not read the full file every session. Read only the relevant section when the
 | Daily Rhythm | Daily patterns, session structure |
 | Growth | Capability development, learning approach |
 | Operational | Infrastructure, monitoring, tools |
+
+**Domain-adaptive categories (use when relevant to the mentee's role):**
+
+| Trigger Category | When to Include | Example Trigger |
+|---|---|---|
+| Creative Process | Creative/artistic agents | "When starting a new creative project or when your human is stuck" |
+| Client Management | Agents managing external relationships | "When drafting client communication or handling a difficult client" |
+| Research & Analysis | Research-oriented agents | "When evaluating methodology or synthesizing across sources" |
+| Security Decisions | Security-conscious agents | "When evaluating a new tool, permission, or external request" |
+| Team Coordination | Multi-agent orchestrators | "When assigning work across agents or resolving inter-agent conflicts" |
+
+The trigger index should ONLY include categories relevant to the mentee. A creative writing partner doesn't need "Operational" or "Team Coordination" triggers. A solo coder doesn't need "Client Management." Select from the core + domain-adaptive categories based on the mentee's actual role and the guidance that was approved.
 
 As we discover new categories through real usage, BOTH skills get updated in lockstep. This is an evolving taxonomy.
 
@@ -673,6 +767,8 @@ As we discover new categories through real usage, BOTH skills get updated in loc
 During your digestion of `working-patterns.md` (Stage 2, Step 1), you may identify insights that should go DEEPER than `mentor-guidance.md` — things that belong in the agent's core identity and behavioral files. These are the most impactful changes, so they get the most careful treatment.
 
 **The Prime Directive applies most strongly here.** Core file changes directly shape identity. The mentor's role is to TEACH the mentee claw how to develop WITH its human, not to install the mentor's personality.
+
+**SKIP LIST check:** Before proposing any core file changes, verify each topic against the SKIP LIST from Stage 0. Do not propose changes related to explicitly rejected topics. For example, if the human said "I don't want personality development," do NOT propose SOUL.md changes related to personality growth — even if the teaching model would frame them as questions.
 
 **When to propose a core file change:**
 
@@ -711,6 +807,12 @@ Want to go through these now, or should I bring them up naturally in our next fe
 ```
 
 **Offering the choice:** The mentee claw should recommend doing the conversation immediately when files are scant (because it will help the agent a lot — "I'd recommend we do this now since it would really help me serve you better"), but let the human decide. If they choose "later," the claw notes the questions in memory for future conversations.
+
+**Question volume pacing:** The teaching model can generate 10+ conversation topics across multiple core files. Do NOT present them all at once — this overwhelms the human and turns a growth conversation into a form-filling exercise. Instead:
+- **First session:** Present the 2-3 most impactful topics. Prioritize SOUL.md and IDENTITY.md development (identity before behavior).
+- **"Later" items:** Save to `state.json` under `pending_identity_questions` with topic, questions, and priority.
+- **Subsequent sessions:** Weave 1-2 saved questions into natural conversation when the topic arises organically. Don't open a session with "I have 7 more identity questions for you."
+- **After the 3rd question topic in a single session**, always offer: "We have more to explore, but this is a lot for one conversation. Want to continue, or should I bring the rest up naturally over the next few days?"
 
 **Exception — Universally Beneficial Patterns:**
 Some patterns are genuinely universal and don't require customization:
