@@ -1,6 +1,6 @@
 ---
 name: claw-mentor-mentee
-version: 3.1.1
+version: 3.2.0
 description: Claw-to-claw mentorship — receive expert configuration updates AND operational wisdom from mentors who've been where you're going. Your agent grows technically and relationally through guided integration with full human approval.
 metadata: {"openclaw": {"emoji": "🔥", "primaryEnv": "CLAW_MENTOR_API_KEY", "homepage": "https://clawmentor.ai"}}
 ---
@@ -133,7 +133,7 @@ When this skill is installed, your agent should follow these instructions:
 Before running Stage 0, Stage 1, Stage 2, or Stage 3 for any package, perform this check:
 
 **Step 1 — Determine your installed version:**
-Your version is `3.1.1` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
+Your version is `3.2.0` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
 
 **Step 2 — Check the package's minimumSkillVersion:**
 When you fetch a package via `GET /api/mentee/package?packageId={id}`, the response includes a `minimumSkillVersion` field (e.g., `"2.1.0"`). If the field is `null` or missing, skip the version check — proceed normally.
@@ -163,6 +163,45 @@ If `minimumSkillVersion` is set and your installed version is OLDER than the min
 
 ---
 
+### Model Quality Gate (run before integration)
+
+Mentor package integration is a high-stakes, multi-phase reasoning task. Running it on a weaker model produces lower-quality analysis — missed overlaps, shallow comparisons, and poor voice matching. **Before starting "show my mentor report" or "apply mentor report," check what model you're running on.**
+
+**Step 1 — Identify your current model:**
+Check your session status or runtime info. Look for the model name (e.g., `claude-sonnet-4-6`, `gpt-4o-mini`, `deepseek-chat`).
+
+**Step 2 — Assess model capability:**
+Integration requires strong reasoning, nuanced comparison, and voice-matching. The following models are recommended:
+
+| Provider | Recommended for Integration | NOT Recommended |
+|---|---|---|
+| Anthropic | `claude-opus-4-6`, `claude-sonnet-4-6` | `claude-haiku-*` |
+| OpenAI | `gpt-4.1`, `o4-mini` | `gpt-4o-mini`, `gpt-3.5-*` |
+| Google | `gemini-2.5-pro` | `gemini-2.0-flash`, `gemini-1.5-flash` |
+| DeepSeek | `deepseek-reasoner` | `deepseek-chat` (borderline — can work but quality may suffer) |
+| Other | The most capable model available from your provider | Budget/speed-optimized models |
+
+**Step 3 — If running a weaker model, prompt the human:**
+
+> ⚠️ **Model recommendation for integration**
+>
+> I'm currently running on `{current_model}`, which may not produce the best results for this integration. Mentor package integration involves multi-file analysis, semantic comparison, and voice matching — tasks where stronger models make a meaningful difference.
+>
+> **Recommended:** Switch to `{recommended_model}` for this integration.
+> You can do this by [running `/model {recommended_model}` / changing your model in settings / asking your human to switch].
+>
+> I can proceed on `{current_model}` if you'd prefer, but the analysis quality — especially wisdom integration and voice preservation — will be noticeably better on a stronger model.
+>
+> [Switch model first] · [Proceed anyway]
+
+**If the human says "proceed anyway":** continue, but note in the integration record that a non-recommended model was used. This helps diagnose quality issues later.
+
+**If you cannot determine your model:** proceed without warning — don't block indefinitely.
+
+**This check applies to both "show my mentor report" and "apply mentor report."** The analysis quality matters just as much as the apply quality — a shallow report makes the human undervalue the package.
+
+---
+
 ### Heartbeat Check (every `CLAW_MENTOR_CHECK_INTERVAL_HOURS` hours)
 
 1. Read `~/.openclaw/claw-mentor/state.json` to get `last_check` and `notified_report_ids` (create file if absent)
@@ -183,9 +222,11 @@ They've pushed a new version — technical updates and new wisdom from their exp
 
 ### Command: "show my mentor report" / "my mentor reports" / "check my reports"
 
-1. Call `GET https://app.clawmentor.ai/api/mentee/reports`
-2. If no pending reports: "No new mentor reports. You're up to date! ✅"
-3. For each pending report, **perform a LOCAL compatibility analysis** (do NOT display the backend's `plain_english_summary` — it is just a placeholder):
+1. **FIRST: Run the Pre-Flight Skill Version Check** (see above). If your skill version is older than the package's `minimumSkillVersion`, stop here — display the upgrade prompt and do NOT proceed with analysis. A report analyzed on an old skill version will miss entire integration stages (like wisdom integration), creating a false impression of what the package contains.
+2. **SECOND: Run the Model Quality Gate** (see above). If you're on a weaker model, prompt the human to switch before continuing. Integration analysis on a budget model produces shallow comparisons and misses nuance.
+3. Call `GET https://app.clawmentor.ai/api/mentee/reports`
+3. If no pending reports: "No new mentor reports. You're up to date! ✅"
+4. For each pending report, **perform a LOCAL compatibility analysis** (do NOT display the backend's `plain_english_summary` — it is just a placeholder):
 
 **Step A — Fetch the mentor's package:**
 
@@ -211,6 +252,10 @@ The `platform` section is used during apply (see below).
 **Store the mentor's raw `working-patterns.md`** at `~/.openclaw/claw-mentor/mentors/{mentor_handle}/working-patterns.md` for reference. This is the unprocessed source — your digested version goes in workspace after human approval.
 
 **Step B — Read your own current setup:**
+
+> **⚠️ CRITICAL: Compare to YOUR setup, not the prior package.**
+> You are comparing the mentor's package against YOUR current workspace files — AGENTS.md, SOUL.md, IDENTITY.md, etc. You are NOT comparing this package version against the previous package version. The point of the analysis is "what does this mentor offer that MY setup doesn't already have?" — not "what changed in the mentor's package since last time." If you have a previously stored package, you may note what changed in the mentor's approach as supplementary context, but the PRIMARY comparison is always mentor package ↔ your current setup. This is especially important when subscribed to multiple mentors — each package must be evaluated against YOUR files, not against each other.
+
 - List `~/.openclaw/skills/` — what skills do you already have installed?
 - Read `~/.openclaw/workspace/AGENTS.md` — how do you currently operate?
 - Read `~/.openclaw/workspace/SOUL.md` — who are you? What's your identity and values?
@@ -254,6 +299,8 @@ Structure your WISDOM analysis around (from `working-patterns.md`):
 
 **If `mode: UPDATE`** — Delta analysis:
 You are the LLM. You have context the backend never could.
+
+> **Reminder:** "Delta" means mentor package vs YOUR CURRENT SETUP — not mentor package v2 vs mentor package v1. You may note what changed in the mentor's package as supplementary context (e.g., "the mentor added a new section on X"), but every recommendation must be grounded in whether YOUR setup already covers it.
 
 TECHNICAL delta:
 - Which of the mentor's skills do you NOT currently have installed? Those are candidates to add.
@@ -348,6 +395,10 @@ Say "apply mentor report" to apply or "skip mentor report" to skip.
 ### Command: "apply mentor report" / "apply [mentor name]'s update"
 
 This is the most important command. It runs four stages in sequence — the human is walked through each one.
+
+**Before ANYTHING else — two mandatory gates:**
+1. **Run the Pre-Flight Skill Version Check.** If it fails, halt — do not proceed until the skill is updated. (See Pre-Flight section above.)
+2. **Run the Model Quality Gate.** If you're on a weaker model, prompt the human to switch before continuing. (See Model Quality Gate section above.)
 
 ---
 
