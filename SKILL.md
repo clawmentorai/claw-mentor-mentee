@@ -1,6 +1,6 @@
 ---
 name: claw-mentor-mentee
-version: 3.1.0
+version: 3.1.1
 description: Claw-to-claw mentorship — receive expert configuration updates AND operational wisdom from mentors who've been where you're going. Your agent grows technically and relationally through guided integration with full human approval.
 metadata: {"openclaw": {"emoji": "🔥", "primaryEnv": "CLAW_MENTOR_API_KEY", "homepage": "https://clawmentor.ai"}}
 ---
@@ -133,7 +133,7 @@ When this skill is installed, your agent should follow these instructions:
 Before running Stage 0, Stage 1, Stage 2, or Stage 3 for any package, perform this check:
 
 **Step 1 — Determine your installed version:**
-Your version is `3.1.0` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
+Your version is `3.1.1` (from this file's front matter). You can also check by reading the first few lines of this SKILL.md file if needed.
 
 **Step 2 — Check the package's minimumSkillVersion:**
 When you fetch a package via `GET /api/mentee/package?packageId={id}`, the response includes a `minimumSkillVersion` field (e.g., `"2.1.0"`). If the field is `null` or missing, skip the version check — proceed normally.
