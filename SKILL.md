@@ -472,6 +472,8 @@ SKIP LIST:
 - **Implicit preferences** (e.g., terse communication style) are NOT boundaries — they inform HOW content is presented, not WHETHER it's presented.
 - **Past tense rejections** count: "We tried X and it didn't work" = boundary on X.
 
+Save the SKIP LIST to `~/.openclaw/claw-mentor/state.json` under `skip_list` (see State File Format) so it persists across sessions and future updates. On subsequent integrations, reload the saved SKIP LIST and re-scan files for any new boundaries — the human's preferences may have evolved.
+
 Show the SKIP LIST to the human as part of the preview:
 
 > **Boundaries I detected:**
@@ -1020,6 +1022,24 @@ If two mentors give contradictory guidance (e.g., one says prioritize overnight 
     "goals": "Help me stay on top of my projects and automate routine work",
     "context": "Building a SaaS product, learning OpenClaw"
   },
+  "pending_identity_questions": [
+    {
+      "topic": "Trust & Autonomy",
+      "file": "SOUL.md",
+      "questions": ["How do you want me to handle situations where I think I should act but haven't been explicitly told to?"],
+      "priority": "high",
+      "source_mentor": "ember",
+      "deferred_date": "2026-03-01T14:32:00Z"
+    }
+  ],
+  "skip_list": [
+    {
+      "topic": "Sub-agents",
+      "source_quote": "We tried sub-agents once — not for us",
+      "source_file": "AGENTS.md",
+      "detected_date": "2026-03-01T14:32:00Z"
+    }
+  ],
   "wisdom_integration_log": [
     {
       "date": "2026-03-01T14:32:00Z",
@@ -1027,6 +1047,7 @@ If two mentors give contradictory guidance (e.g., one says prioritize overnight 
       "report_id": "uuid1",
       "guidance_items_approved": 5,
       "guidance_items_skipped": 2,
+      "boundary_skipped": 1,
       "core_file_changes": [
         { "file": "SOUL.md", "status": "approved", "summary": "Added proactive investment in human's goals" }
       ]
