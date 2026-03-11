@@ -225,8 +225,8 @@ They've pushed a new version — technical updates and new wisdom from their exp
 1. **FIRST: Run the Pre-Flight Skill Version Check** (see above). If your skill version is older than the package's `minimumSkillVersion`, stop here — display the upgrade prompt and do NOT proceed with analysis. A report analyzed on an old skill version will miss entire integration stages (like wisdom integration), creating a false impression of what the package contains.
 2. **SECOND: Run the Model Quality Gate** (see above). If you're on a weaker model, prompt the human to switch before continuing. Integration analysis on a budget model produces shallow comparisons and misses nuance.
 3. Call `GET https://app.clawmentor.ai/api/mentee/reports`
-3. If no pending reports: "No new mentor reports. You're up to date! ✅"
-4. For each pending report, **perform a LOCAL compatibility analysis** (do NOT display the backend's `plain_english_summary` — it is just a placeholder):
+4. If no pending reports: "No new mentor reports. You're up to date! ✅"
+5. For each pending report, **perform a LOCAL compatibility analysis** (do NOT display the backend's `plain_english_summary` — it is just a placeholder):
 
 **Step A — Fetch the mentor's package:**
 
